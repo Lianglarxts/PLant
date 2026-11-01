@@ -113,7 +113,7 @@ export function sunGroups(R: number): Group[] {
   ];
 }
 
-export function cloudGroups(w: number, seed: number): Group[] {
+export function cloudGroups(w: number, seed: number, dark = false): Group[] {
   const r = mulberry32(seed);
   const h = w * range(r, 0.38, 0.5);
   const bumps = 3 + Math.floor(r() * 3);
@@ -129,11 +129,86 @@ export function cloudGroups(w: number, seed: number): Group[] {
     } else y *= 0.45;
     pts.push([x, y]);
   }
-  return [{ shapes: [{ kind: 'poly', pts, fill: '#dbe7f0', base: '#fdfaf2', fa: 0.92, gap: 5, weight: 1.6, style: 'hachure', angle: -20, stroke: C.skyDark, sw: 2.3 }] }];
+  return [{
+    shapes: [{
+      kind: 'poly', pts, fill: dark ? '#8e99a6' : '#dbe7f0', base: dark ? '#c3cad2' : '#fdfaf2', fa: 0.92, gap: dark ? 3.5 : 5, weight: 1.6,
+      style: 'hachure', angle: -20, stroke: dark ? '#5f6b78' : C.skyDark, sw: 2.3,
+    }],
+  }];
 }
 
 export function dropGroups(): Group[] {
   return [{ shapes: [{ kind: 'poly', pts: leafPts(0, 5, Math.PI, 13, 4.2, 1.6, 0, 6), fill: C.sky, fa: 0.5, gap: 1.6, stroke: '#4f7fae', sw: 1.6 }] }];
+}
+
+export function moonGroups(R: number): Group[] {
+  const craters: Shape[] = [[-0.35, 0.3, 0.16], [0.3, 0.45, 0.11], [0.42, -0.1, 0.09]].map(([x, y, r]) => ({
+    kind: 'poly', pts: ellipsePts(x * R, y * R, r * R, r * R * 0.85, 0, 9), fill: '#d8c98f', fa: 0.6, gap: 1.6, stroke: '#b9a76a', sw: 1.2,
+  }));
+  return [
+    { shapes: [{ kind: 'poly', pts: ellipsePts(0, 0, R, R * 0.97, 0, 18), fill: '#f4ebc3', base: '#fbf6e2', fa: 0.85, gap: 3, weight: 1.6, stroke: '#b9a76a', sw: 2.4 }, ...craters] },
+    {
+      shapes: [
+        { kind: 'curve', pts: [[-R * 0.42, -R * 0.12], [-R * 0.3, -R * 0.03], [-R * 0.18, -R * 0.12]], stroke: INK, sw: 1.8, rough: 0.4 },
+        { kind: 'curve', pts: [[R * 0.08, -R * 0.12], [R * 0.2, -R * 0.03], [R * 0.32, -R * 0.12]], stroke: INK, sw: 1.8, rough: 0.4 },
+        { kind: 'curve', pts: [[-R * 0.15, R * 0.15], [-R * 0.06, R * 0.22], [R * 0.04, R * 0.15]], stroke: INK, sw: 1.6, rough: 0.4 },
+      ],
+    },
+  ];
+}
+
+export function starGroups(r: number): Group[] {
+  const pts: Pt[] = [];
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const q = i % 2 ? r * 0.45 : r;
+    pts.push([Math.cos(a) * q, Math.sin(a) * q]);
+  }
+  return [{ shapes: [{ kind: 'poly', pts, fill: '#f2d25c', fa: 0.85, gap: 1.4, stroke: '#c99a2e', sw: 1.2 }] }];
+}
+
+export function leafBitGroups(color: string): Group[] {
+  return [{ shapes: [{ kind: 'poly', pts: leafPts(0, 5, 0, 11, 3.6, 1, 0.25, 6), fill: color, fa: 0.55, gap: 1.6, stroke: INK, sw: 1.1 }] }];
+}
+
+export function flakeGroups(): Group[] {
+  const out: Shape[] = [{ kind: 'poly', pts: ellipsePts(0, 0, 3.8, 3.8, 0, 8), fill: '#ffffff', base: '#ffffff', fa: 0.95, gap: 1, stroke: '#6f8ba3', sw: 1.4 }];
+  return [{ shapes: out }];
+}
+
+/** Cartoon wind curl drifting across the sky. */
+export function windGroups(seed: number): Group[] {
+  const r = mulberry32(seed);
+  const L = range(r, 50, 80);
+  const pts: Pt[] = [];
+  for (let x = 0; x <= L; x += 8) pts.push([x - L, Math.sin(x * 0.09 + seed) * 3]);
+  const R = range(r, 5, 8);
+  for (let i = 0; i <= 8; i++) {
+    const a = -Math.PI / 2 + (i / 8) * Math.PI * 1.6;
+    pts.push([Math.cos(a) * R, R + Math.sin(a) * R - R]);
+  }
+  return [{ shapes: [{ kind: 'curve', pts, stroke: '#8aa5bd', sw: 2, rough: 0.6 }] }];
+}
+
+/** White crayon snow lying along the soil line. */
+export function snowCapGroups(W: number, H: number): { groups: Group[]; top: number } {
+  const r = mulberry32(31 + Math.round(W));
+  const top: Pt[] = [], bottom: Pt[] = [];
+  for (let x = -30; x <= W + 30; x += 22) {
+    const gy = groundY(x, H);
+    top.push([x, gy - 3 - r() * 4]);
+    bottom.unshift([x, gy + 5 + r() * 5]);
+  }
+  const drifts: Shape[] = [];
+  for (let i = 0; i < Math.round(W / 70); i++) {
+    const x = range(r, 0, W);
+    const y = range(r, groundY(x, H) + 30, H - 10);
+    drifts.push({ kind: 'poly', pts: ellipsePts(x, y, range(r, 14, 30), range(r, 3, 6), 0, 10), fill: '#ffffff', base: '#ffffff', fa: 0.8, gap: 2, stroke: '#b8cad8', sw: 1.2 });
+  }
+  return {
+    groups: [{ shapes: [{ kind: 'poly', pts: [...top, ...bottom], fill: '#ffffff', base: '#ffffff', fa: 0.9, gap: 2.2, stroke: '#b8cad8', sw: 1.6 }, ...drifts] }],
+    top: H * 0.64 - 40,
+  };
 }
 
 /** Cache of small sprites in 3 boil variants, keyed by name. */
@@ -153,4 +228,52 @@ export class SpriteBank {
   clear() {
     this.m.clear();
   }
+}
+
+export function renderSnowCap(W: number, H: number, dpr: number) {
+  const { groups, top } = snowCapGroups(W, H);
+  const c = document.createElement('canvas');
+  c.width = Math.ceil(W * dpr);
+  c.height = Math.ceil((H - top) * dpr);
+  drawGroups(c, groups, [dpr, 0, 0, dpr, 0, -top * dpr], 555, 0);
+  return { canvas: c, top };
+}
+
+/** Watering can, centred on its body; the spout tip is at CAN_TIP. */
+export const CAN_TIP: Pt = [37, -13];
+export function canGroups(): Group[] {
+  const body: Pt[] = [[-16, -13], [14, -13], [16, 14], [-18, 14]];
+  const spout: Pt[] = [[11, 5], [33, -15], [37, -11], [15, 11]];
+  return [
+    {
+      shapes: [
+        { kind: 'poly', pts: spout, fill: '#8fb8d8', fa: 0.55, gap: 2, stroke: INK, sw: 1.8 },
+        { kind: 'poly', pts: ellipsePts(36, -14, 4.5, 2.6, -0.8, 8), fill: '#6f98bf', fa: 0.7, gap: 1.4, stroke: INK, sw: 1.4 },
+      ],
+    },
+    {
+      shapes: [
+        { kind: 'poly', pts: body, fill: '#8fb8d8', fa: 0.55, gap: 2.4, stroke: INK, sw: 2 },
+        { kind: 'curve', pts: [[-13, -13], [-3, -31], [10, -13]], stroke: INK, sw: 2.8, rough: 0.6 },
+        { kind: 'curve', pts: [[-14, 1], [0, 2], [13, 0]], stroke: '#5b8fc0', sw: 1.6, rough: 0.6 },
+      ],
+    },
+  ];
+}
+
+/** Crayon rainbow: six thick rough bands, centred at (0,0), upper half only. */
+export function rainbowGroups(R: number): Group[] {
+  const cols = ['#d9634f', '#f0a35c', '#f2d25c', '#8cc06a', '#6fa4d4', '#9b86c9'];
+  const bw = Math.max(7, R * 0.045);
+  return [{
+    shapes: cols.map((c, i) => {
+      const r = R - i * bw * 0.92;
+      const pts: Pt[] = [];
+      for (let k = 0; k <= 28; k++) {
+        const a = Math.PI + (Math.PI * k) / 28;
+        pts.push([Math.cos(a) * r, Math.sin(a) * r]);
+      }
+      return { kind: 'curve', pts, stroke: c, sw: bw, rough: 1.3 } as Shape;
+    }),
+  }];
 }

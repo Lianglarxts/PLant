@@ -22,18 +22,61 @@ body { font-family: 'Patrick Hand', 'Gaegu', 'Comic Sans MS', cursive; color: #2
 #stats .lbl { opacity: .75; }
 #stats .small { font-size: 16px; opacity: .8; }
 #stats .small b { font-size: 18px; }
-#reset { cursor: pointer; font-size: 20px; }
-#reset .content { padding: 7px 16px 8px; }
-#reset:active { transform: translateY(1px) rotate(-1deg); }
-#reset:focus-visible { outline: 2px dashed #2e2823; outline-offset: 6px; }
+#buttons { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; justify-content: flex-end; }
+#buttons .paper { cursor: pointer; font-size: 20px; }
+#buttons .paper .content { padding: 7px 16px 8px; }
+#buttons .paper b { font-family: 'Gaegu', 'Patrick Hand', cursive; font-weight: 700; }
+#buttons .paper:active { transform: translateY(1px) rotate(-1deg); }
+#buttons .paper:focus-visible, #book button:focus-visible { outline: 2px dashed #2e2823; outline-offset: 6px; }
+#book-btn.wiggle { animation: wiggle .7s ease-in-out 2; }
+@keyframes wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } }
+
+#book { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(46, 40, 35, .28); z-index: 5; }
+#book[hidden] { display: none; }
+#book .sheet { width: min(620px, 100%); max-height: min(88vh, 800px); display: flex; }
+#book .sheet > .content { overflow-y: auto; padding: 14px 18px 18px; width: 100%; }
+.book-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.book-head h2 { margin: 0; font-family: 'Gaegu', 'Patrick Hand', cursive; font-size: 32px; font-weight: 700; }
+.book-count { font-size: 19px; opacity: .8; }
+.book-count b { font-family: 'Gaegu', cursive; font-size: 22px; }
+#book-close { margin-left: auto; font: inherit; font-size: 19px; background: none; border: 2px solid #2e2823; border-radius: 12px 9px 13px 8px; padding: 1px 12px 3px; cursor: pointer; color: inherit; }
+.book-sub { margin: 2px 0 10px; font-size: 17px; opacity: .7; }
+#book-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px 8px; }
+.cell { margin: 0; text-align: center; }
+.cell canvas { display: block; width: 100%; max-width: 96px; aspect-ratio: 96 / 104; margin: 0 auto; }
+.cell figcaption { font-size: 15px; line-height: 1.05; min-height: 2.1em; }
+.cell.unknown figcaption { opacity: .45; }
+.book-h3 { margin: 14px 0 4px; font-family: 'Gaegu', 'Patrick Hand', cursive; font-size: 25px; font-weight: 700; }
+#book-vases { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
+#book-vases canvas { display: block; width: 84px; height: 100px; margin: 0 auto; }
+#book-vases .book-sub { grid-column: 1 / -1; margin: 0; }
+#vase-pop { position: fixed; right: 12px; bottom: calc(max(14px, env(safe-area-inset-bottom)) + 104px); z-index: 4; max-width: min(300px, calc(100vw - 24px)); }
+#vase-pop[hidden] { display: none; }
+#vase-pop .content { padding: 10px 14px 12px; font-size: 19px; }
+#vase-pop b { font-family: 'Gaegu', cursive; font-size: 22px; }
+.vase-sub { margin: 2px 0 8px; font-size: 16px; line-height: 1.15; opacity: .75; }
+.vase-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.vase-btns button { font: inherit; font-size: 18px; background: #fbf6e6; border: 2px solid #2e2823; border-radius: 12px 9px 13px 8px; padding: 1px 12px 3px; cursor: pointer; color: inherit; }
+#vase-new { background: #f3d9c9; }
+.vase-btns button:focus-visible { outline: 2px dashed #2e2823; outline-offset: 4px; }
 #hint {
   position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%) rotate(-1.5deg);
   font-size: 22px; opacity: .8; pointer-events: none; transition: opacity .8s; white-space: nowrap;
 }
 #hint.hide { opacity: 0; }
+#toast {
+  position: fixed; left: 50%; bottom: calc(max(18px, env(safe-area-inset-bottom)) + 40px); transform: translateX(-50%) rotate(1deg);
+  font-size: 21px; padding: 4px 14px; background: #fbf6e6; border: 2px solid #2e2823; border-radius: 14px 10px 16px 9px;
+  opacity: 0; pointer-events: none; transition: opacity .4s, transform .4s; white-space: nowrap; max-width: calc(100vw - 32px);
+}
+#toast.show { opacity: .95; transform: translateX(-50%) rotate(-1deg) translateY(-4px); }
 @media (max-width: 480px) {
   #stats .content { font-size: 16px; padding: 6px 10px 7px; }
   #stats b { font-size: 19px; }
-  #reset { font-size: 17px; }
+  #buttons { gap: 10px; }
+  #buttons .paper { font-size: 17px; }
+  #buttons .paper .content { padding: 6px 11px 7px; }
+  .cell figcaption { font-size: 12.5px; }
+  #book .sheet > .content { padding: 12px 10px 14px; }
   #hint { font-size: 19px; }
 }

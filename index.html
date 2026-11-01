@@ -20,14 +20,53 @@
           <div><span class="lbl">generations</span> <b id="s-gen">1</b></div>
           <div><span class="lbl">seeds</span> <b id="s-seeds">1</b></div>
           <div class="small"><span class="lbl">garden</span> <b id="s-plants">1</b>/40</div>
+          <div class="small world" id="s-world">spring · day 1 · sunny</div>
         </div>
       </div>
-      <button class="paper" id="reset" type="button">
-        <svg class="frame" aria-hidden="true"></svg>
-        <span class="content">start over</span>
-      </button>
+      <div id="buttons">
+        <button class="paper" id="book-btn" type="button" data-tone="yellow" aria-haspopup="dialog">
+          <svg class="frame" aria-hidden="true"></svg>
+          <span class="content">book <b class="book-n">0</b>/<span class="book-total">35</span></span>
+        </button>
+        <button class="paper" id="sound-btn" type="button" data-tone="green" aria-pressed="false">
+          <svg class="frame" aria-hidden="true"></svg>
+          <span class="content">sound off</span>
+        </button>
+        <button class="paper" id="reset" type="button" data-tone="pink">
+          <svg class="frame" aria-hidden="true"></svg>
+          <span class="content">start over</span>
+        </button>
+      </div>
     </div>
-    <div id="hint">tap the seed to water it</div>
+    <div id="book" role="dialog" aria-modal="true" aria-labelledby="book-title" hidden>
+      <div class="paper sheet" data-tone="plain">
+        <svg class="frame" aria-hidden="true"></svg>
+        <div class="content">
+          <div class="book-head">
+            <h2 id="book-title">collection book</h2>
+            <span class="book-count"><b class="book-n">0</b>/<span class="book-total">35</span> found</span>
+            <button id="book-close" type="button" aria-label="Close book">close</button>
+          </div>
+          <p class="book-sub">every species and rare variant you grow gets sketched here</p>
+          <div id="book-grid"></div>
+          <h3 class="book-h3">your bouquets</h3>
+          <div id="book-vases"><p class="book-sub">finished vases are kept here</p></div>
+        </div>
+      </div>
+    </div>
+    <div id="vase-pop" class="paper" data-tone="plain" role="dialog" aria-labelledby="vase-title" hidden>
+      <svg class="frame" aria-hidden="true"></svg>
+      <div class="content">
+        <div id="vase-title" class="vase-title">your <span id="vase-name">vase</span> · <b id="vase-n">0</b>/7 flowers</div>
+        <p class="vase-sub">done collecting? keep this bouquet in your book and start a new vase</p>
+        <div class="vase-btns">
+          <button id="vase-new" type="button">new vase</button>
+          <button id="vase-keep" type="button">keep filling</button>
+        </div>
+      </div>
+    </div>
+    <div id="hint">tap the seed to water it, or just watch it grow</div>
+    <div id="toast" role="status" aria-live="polite"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

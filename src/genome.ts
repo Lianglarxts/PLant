@@ -1,4 +1,5 @@
-import { Rng, range, gauss, clamp } from './util';
+import { Rng, range, gauss, clamp, angDiff } from './util';
+import { Species, SPECIES_INFO } from './species';
 
 export interface Genome {
   height: number;
@@ -27,6 +28,8 @@ export interface Genome {
   centerHue: number;
   centerLight: number;
   seedCount: number;
+  /** how many stems come up from one root (bushy clumps) */
+  clump: number;
 }
 
 type Kind = 'f' | 'int' | 'hue';
@@ -58,36 +61,38 @@ const SPEC: Record<keyof Genome, [number, number, number, Kind]> = {
   centerHue: [20, 55, 4, 'f'],
   centerLight: [28, 58, 3, 'f'],
   seedCount: [2, 4, 0, 'int'],
+  clump: [0, 0.3, 0.08, 'f'],
 };
 
-/** Muted crayon flower colours: [hue, sat, light] */
-const PETALS: [number, number, number][] = [
-  [45, 66, 62], // sunflower yellow
-  [9, 52, 52], // brick red
-  [345, 52, 76], // soft pink
-  [27, 62, 62], // tangerine
-  [268, 30, 68], // lavender
-  [205, 42, 66], // sky blue
-  [42, 34, 81], // cream
-];
+/** Trait range for a species (species overrides fall back to the global spec). */
+function lim(k: keyof Genome, sp: Species): [number, number] {
+  return SPECIES_INFO[sp].ranges[k] ?? [SPEC[k][0], SPEC[k][1]];
+}
+const KEYS = Object.keys(SPEC) as (keyof Genome)[];
 
-export function randomGenome(r: Rng): Genome {
-  const g = {} as Genome;
-  for (const k of Object.keys(SPEC) as (keyof Genome)[]) {
-    const [a, b, , kind] = SPEC[k];
-    g[k] = kind === 'int' ? Math.floor(range(r, a, b + 0.999)) : range(r, a, b);
-  }
-  const p = PETALS[Math.floor(r() * PETALS.length)];
-  g.petalHue = p[0] + gauss(r) * 5;
+function setPalette(g: Genome, sp: Species, r: Rng) {
+  const pal = SPECIES_INFO[sp].palette;
+  const p = pal[Math.floor(r() * pal.length)];
+  g.petalHue = (p[0] + gauss(r) * 5 + 360) % 360;
   g.petalSat = p[1];
   g.petalLight = p[2];
+}
+
+export function randomGenome(r: Rng, sp: Species = 'daisy'): Genome {
+  const g = {} as Genome;
+  for (const k of KEYS) {
+    const [a, b] = lim(k, sp);
+    g[k] = SPEC[k][3] === 'int' ? Math.floor(range(r, a, b + 0.999)) : range(r, a, b);
+  }
+  setPalette(g, sp, r);
   return g;
 }
 
-export function mutate(parent: Genome, r: Rng): Genome {
+export function mutate(parent: Genome, sp: Species, r: Rng): Genome {
   const g = { ...parent };
-  for (const k of Object.keys(SPEC) as (keyof Genome)[]) {
-    const [a, b, std, kind] = SPEC[k];
+  for (const k of KEYS) {
+    const [, , std, kind] = SPEC[k];
+    const [a, b] = lim(k, sp);
     if (kind === 'int') {
       if (r() < 0.3) g[k] = clamp(g[k] + (r() < 0.5 ? -1 : 1), a, b);
       continue;
@@ -96,20 +101,46 @@ export function mutate(parent: Genome, r: Rng): Genome {
     if (r() < 0.07) v += gauss(r) * std * 4; // occasional bigger jump
     g[k] = kind === 'hue' ? ((v % 360) + 360) % 360 : clamp(v, a, b);
   }
-  if (r() < 0.04) {
-    // rare colour jump to another crayon in the box
-    const p = PETALS[Math.floor(r() * PETALS.length)];
-    g.petalHue = p[0];
-    g.petalSat = p[1];
-    g.petalLight = p[2];
-  }
+  // rare colour jump to another crayon in the box
+  if (r() < 0.04) setPalette(g, sp, r);
   return g;
 }
 
-/** Fill in any trait missing from older saves. */
-export function sanitize(g: Partial<Genome>, r: Rng): Genome {
-  const base = randomGenome(r);
-  const out = { ...base, ...g } as Genome;
-  for (const k of Object.keys(SPEC) as (keyof Genome)[]) if (typeof out[k] !== 'number' || !isFinite(out[k])) out[k] = base[k];
+/**
+ * Child of two parents: every trait comes from one parent or a blend of both
+ * (colours blend around the colour wheel), then mutates a little.
+ */
+export function crossbreed(a: Genome, b: Genome, sp: Species, r: Rng): Genome {
+  const g = { ...a };
+  for (const k of KEYS) {
+    const kind = SPEC[k][3];
+    const t = r() < 0.5 ? r() : r() < 0.5 ? 0 : 1;
+    if (kind === 'int') g[k] = r() < 0.5 ? a[k] : b[k];
+    else if (kind === 'hue') g[k] = (((a[k] + angDiff((a[k] * Math.PI) / 180, (b[k] * Math.PI) / 180) * (180 / Math.PI) * t) % 360) + 360) % 360;
+    else g[k] = a[k] + (b[k] - a[k]) * t;
+  }
+  // keep the colour of the blend vivid: take saturation/lightness from the same parent as a pair
+  const src = r() < 0.5 ? a : b;
+  g.petalSat = src.petalSat;
+  g.petalLight = src.petalLight;
+  return mutate(fit(g, sp), sp, r);
+}
+
+/** Clamp every trait into the species' range. */
+export function fit(g: Genome, sp: Species): Genome {
+  const out = { ...g };
+  for (const k of KEYS) {
+    if (SPEC[k][3] === 'hue') continue;
+    const [a, b] = lim(k, sp);
+    out[k] = clamp(out[k], a, b);
+  }
   return out;
+}
+
+/** Fill in any trait missing from older saves. */
+export function sanitize(g: Partial<Genome>, sp: Species, r: Rng): Genome {
+  const base = randomGenome(r, sp);
+  const out = { ...base, ...g } as Genome;
+  for (const k of KEYS) if (typeof out[k] !== 'number' || !isFinite(out[k])) out[k] = base[k];
+  return fit(out, sp);
 }
