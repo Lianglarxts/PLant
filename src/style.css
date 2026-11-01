@@ -1,0 +1,39 @@
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; overflow: hidden;
+  background: #F4EEDC;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+}
+body { font-family: 'Patrick Hand', 'Gaegu', 'Comic Sans MS', cursive; color: #2e2823; }
+#garden { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; display: block; touch-action: none; }
+#garden.can {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill='none' stroke='%232e2823' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 18 L31 17 L32 33 Q32 35 30 35 L17 35 Q15 35 15 33 Z' fill='%238fb8d8'/%3E%3Cpath d='M31.5 21 Q38 21 36 29 L32 31'/%3E%3Cpath d='M17 17 Q23 9 29 16'/%3E%3Cpath d='M15 24 L6 12' stroke-width='3'/%3E%3Cpath d='M2.5 12.5 L8.5 7.5'/%3E%3C/g%3E%3Cg fill='%235b8fc0'%3E%3Ccircle cx='3' cy='17' r='1.4'/%3E%3Ccircle cx='7' cy='19' r='1.2'/%3E%3C/g%3E%3C/svg%3E") 4 10, pointer;
+}
+#hud {
+  position: fixed; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px;
+  display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none;
+}
+.paper { position: relative; pointer-events: auto; border: 0; background: none; padding: 0; font: inherit; color: inherit; }
+.paper .frame { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); overflow: visible; pointer-events: none; }
+.paper .content { position: relative; display: block; }
+#stats .content { padding: 8px 14px 9px; font-size: 19px; line-height: 1.12; }
+#stats b { font-family: 'Gaegu', 'Patrick Hand', cursive; font-weight: 700; font-size: 22px; }
+#stats .lbl { opacity: .75; }
+#stats .small { font-size: 16px; opacity: .8; }
+#stats .small b { font-size: 18px; }
+#reset { cursor: pointer; font-size: 20px; }
+#reset .content { padding: 7px 16px 8px; }
+#reset:active { transform: translateY(1px) rotate(-1deg); }
+#reset:focus-visible { outline: 2px dashed #2e2823; outline-offset: 6px; }
+#hint {
+  position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%) rotate(-1.5deg);
+  font-size: 22px; opacity: .8; pointer-events: none; transition: opacity .8s; white-space: nowrap;
+}
+#hint.hide { opacity: 0; }
+@media (max-width: 480px) {
+  #stats .content { font-size: 16px; padding: 6px 10px 7px; }
+  #stats b { font-size: 19px; }
+  #reset { font-size: 17px; }
+  #hint { font-size: 19px; }
+}

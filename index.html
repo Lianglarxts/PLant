@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#F4EEDC" />
+    <title>Crayon Garden</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="garden" aria-label="Crayon garden. Tap a plant to water it."></canvas>
+    <div id="hud">
+      <div class="paper" id="stats">
+        <svg class="frame" aria-hidden="true"></svg>
+        <div class="content">
+          <div><span class="lbl">grown</span> <b id="s-grown">0</b></div>
+          <div><span class="lbl">generations</span> <b id="s-gen">1</b></div>
+          <div><span class="lbl">seeds</span> <b id="s-seeds">1</b></div>
+          <div class="small"><span class="lbl">garden</span> <b id="s-plants">1</b>/40</div>
+        </div>
+      </div>
+      <button class="paper" id="reset" type="button">
+        <svg class="frame" aria-hidden="true"></svg>
+        <span class="content">start over</span>
+      </button>
+    </div>
+    <div id="hint">tap the seed to water it</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
